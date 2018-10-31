@@ -1,0 +1,19 @@
+replicas: 3
+podManagementPolicy: Parallel
+resources:
+  requests:
+    cpu: 6
+    memory: 20Gi
+persistence:
+  enabled: false
+prometheus:
+  jmx:
+    enabled: true
+  kafka:
+    enabled: true
+
+nodeSelector:
+  dedicated: dev
+
+configurationOverrides:
+  "auto.create.topics.enable": false

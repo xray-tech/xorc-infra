@@ -1,0 +1,30 @@
+artifactory:
+  image:
+    repository: docker.bintray.io/jfrog/artifactory-oss
+  resources:
+   requests:
+     memory: "1Gi"
+     cpu: "500m"
+   limits:
+     memory: "2Gi"
+     cpu: "1"
+  nodeSelector:
+    dedicated: infra
+
+postgresql:
+  nodeSelector:
+    dedicated: infra
+
+
+nginx:
+  service:
+    type: ClusterIP
+  resources:
+   requests:
+     memory: "250Mi"
+     cpu: "100m"
+   limits:
+     memory: "250Mi"
+     cpu: "500m"
+  nodeSelector:
+    dedicated: infra

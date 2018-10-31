@@ -1,0 +1,10 @@
+replicaCount: 3
+persistence:
+  enabled: false
+resources:
+  requests:
+    cpu: 6
+    memory: 20Gi
+
+nodeSelector:
+  dedicated: dev

@@ -1,0 +1,21 @@
+<configuration debug="true" scan="true" scanPeriod="10 seconds">
+  <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+      <layout class="re.logback.JsonLayout">
+        <timestampFormat>yyyy-MM-dd'T'HH:mm:ss.SSSX</timestampFormat>
+        <timestampFormatTimezoneId>Etc/UTC</timestampFormatTimezoneId>
+
+        <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
+        </jsonFormatter>
+        <appendLineSeparator>true</appendLineSeparator>
+      </layout>
+    </encoder>
+  </appender>
+
+  <logger name="re" level="DEBUG"/>
+  <logger name="com.datastax.driver" level="INFO"/>
+  <logger name="org.apache.kafka" level="WARN"/>
+  <root level="INFO">
+    <appender-ref ref="JSON"/>
+  </root>
+</configuration>

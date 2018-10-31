@@ -1,0 +1,100 @@
+
+{{- define "re.config" -}}
+{:duct.core/project-ns  re
+ :duct.core/environment :production
+
+ :duct.core/include ["re/base"]
+
+ [:group/crm :re/kafka-consumer] {:topics ["crm.sdk"]
+                                  :configs {"bootstrap.servers" ["{{.Values.kafka.endpoint}}"]
+                                            "group.id" "{{ template "re.fullname" . }}-crm"}
+                                  :count {{ .Values.crm.workers }}
+                                  :pipeline [#ig/ref :re.stage/effects
+                                             #ig/ref :re.stage/decoder
+                                             #ig/ref :re.stage/crm]}
+
+ [:group/rpc :re/kafka-consumer] {:topics ["rpc.responses"]
+                                  :configs {"bootstrap.servers" ["{{.Values.kafka.endpoint}}"]
+                                            "group.id" "{{ template "re.fullname" . }}-rpc"}
+                                  :count {{ .Values.rpc.workers }}
+                                  :pipeline [#ig/ref :re.stage/effects
+                                             #ig/ref :re.stage/decoder
+                                             #ig/ref :re.stage/rpc
+                                             #ig/ref :re.stage.oam/unblock
+                                             #ig/ref :re.stage/coeffects
+                                             #ig/ref :re.stage/persistence]}
+
+  :re.stage/crm {:db #ig/ref :re/db
+                :programs #ig/ref :re.boundary/programs
+                :states #ig/ref :re.boundary/states
+                :run-pipeline [#ig/ref :re.stage.oam/run
+                               #ig/ref :re.stage/coeffects
+                               #ig/ref :re.stage/persistence]
+                :subscriptions-pipeline [#ig/ref :re.stage.rpc/route]}
+ :re.stage.crm/coeffect-subscription {}
+ :re.stage.rpc/route {:rpc #ig/ref [:group/output :re/rpc]}
+
+ :re/oam {:coeffects [#ig/ref :re.sync-coeffects/now
+                      #ig/ref :re.sync-coeffects/println
+                      #ig/ref :re.sync-coeffects/random
+                      #ig/ref :re.sync-coeffects/clock
+                      #ig/ref :re.sync-coeffects/trace]}
+
+ :re.stage.oam/run {:oam #ig/ref :re/oam}
+
+ :re.stage.oam/unblock {:oam #ig/ref :re/oam}
+ :re.stage/coeffects {:handlers [#ig/ref :re.coeffect/timer-service
+                                 #ig/ref :re.coeffect/http
+                                 #ig/ref :re.stage.crm/coeffect-subscription]}
+ :re.stage/decoder {:decoder #ig/ref :re/decoder}
+
+ :re.stage/persistence {}
+ :re.stage/rpc {:states #ig/ref :re.boundary/states
+                :programs #ig/ref :re.boundary/programs}
+
+ :re.coeffect/timer-service {:rpc #ig/ref [:group/timer :re/rpc]}
+ :re.coeffect/http {:rpc #ig/ref [:group/http :re/rpc]}
+
+ [:group/timer :re/rpc] {:kafka #ig/ref :re/kafka-producer
+                         :topic "rpc.timer"
+                         :encoder #ig/ref :re/encoder}
+
+ [:group/http :re/rpc] {:kafka #ig/ref :re/kafka-producer
+                        :topic "rpc.http"
+                        :encoder #ig/ref :re/encoder}
+
+ [:group/output :re/rpc] {:kafka #ig/ref :re/kafka-producer
+                          :topic "rpc.responses"
+                          :encoder #ig/ref :re/encoder}
+
+ :re.crm/get-current-entity {}
+
+ :re/kafka-producer {:configs {"bootstrap.servers" ["{{.Values.kafka.endpoint}}"]}}
+
+ :re/db {:cluster {:contact-points ["{{.Values.scylla.endpoint}}"]}
+         :keyspace "re"
+         :tracer #ig/ref :re/tracing}
+
+ :re.service/timeout {:encoder #ig/ref :re/encoder
+                      :decoder #ig/ref :re/decoder
+                      :config {:streams-config {"bootstrap.servers" ["{{.Values.kafka.endpoint}}"]
+                                                "application.id" "{{ template "re.fullname" . }}-timeout-service"
+                                                "state.dir" "/tmp/kafka-streams"}
+                               :input-topic "rpc.timer"
+                               :output-topic "rpc.responses"
+                               :timers-store-name "timers"
+                               :correlations-store-name "correlations"}}
+
+ :re.stage/effects {:handlers {:kafka #ig/ref :re.effects/kafka
+                               :db #ig/ref :re.effects/db}}
+ :re.effects/kafka #ig/ref :re/kafka-producer
+ :re.effects/db #ig/ref :re/db
+
+ :duct.module.web/api  {}
+ :duct.server.http/jetty {:port 80
+                          :configurator #ig/ref :re.metrics/jetty}}
+{{- end -}}
+
+{{- define "re.profiles" -}}
+{:deploy {:jvm-opts [{{ range .Values.jvmOpts }}"{{.}}" {{ end }}]}}
+{{- end -}}

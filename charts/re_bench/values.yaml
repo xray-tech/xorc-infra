@@ -1,0 +1,49 @@
+universes: 10
+entities: "100000"
+subscription_events: 2
+
+kafka_image: "confluentinc/cp-kafka"
+kafka_image_tag: "4.0.1-1"
+
+partitions: 10
+
+re:
+  replicaCount: 2
+  workers: 4
+  image:
+    tag: latest
+  resources:
+  requests:
+    cpu: 1
+    memory: 4Gi
+
+tags:
+  consumer: false
+
+kafka:
+  replicas: 3
+  podManagementPolicy: Parallel
+  resources:
+    requests:
+      cpu: 1
+      memory: 2Gi
+  persistence:
+    enabled: false
+  prometheus:
+    jmx:
+      enabled: true
+    kafka:
+      enabled: true
+
+scylla:
+  replicaCount: 3
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: 1
+      memory: 2Gi
+  storage:
+    provisioner: kubernetes.io/gce-pd
+    parameters:
+      type: pd-ssd

@@ -1,0 +1,13 @@
+nodeSelector:
+  dedicated: infra
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 1Gi
+
+metrics:
+  enabled: true

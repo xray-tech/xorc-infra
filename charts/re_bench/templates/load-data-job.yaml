@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{.Release.Name}}-load-data"
+  labels:
+    heritage: {{.Release.Service | quote }}
+    release: {{.Release.Name | quote }}
+    chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-delete-policy": "hook-succeeded,hook-failed"
+    "helm.sh/hook-weight": "1"
+spec:
+  template:
+    metadata:
+      name: "{{.Release.Name}}-load-data"
+      labels:
+        heritage: {{.Release.Service | quote }}
+        release: {{.Release.Name | quote }}
+        chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "eu.gcr.io/xray2poc/re:{{ .Values.re.image.tag }}"
+          command: ["lein", "run", ":re.benchmark/loader"]
+          env:
+            - name: CONFIG_PATH
+              value: re/config.prod.edn
+            - name: KAFKA
+              value: "{{ .Release.Name }}-kafka:9092"
+            - name: SCYLLA
+              value: "{{ .Release.Name }}-scylla"
+            - name: BENCH_UNIVERSES
+              value: "{{ .Values.universes }}"
+            - name: BENCH_ENTITIES
+              value: "{{ .Values.entities }}"
+            - name: BENCH_SUBSCRIPTION_EVENTS
+              value: "{{ .Values.subscription_events }}"
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            

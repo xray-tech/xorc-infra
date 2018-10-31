@@ -1,0 +1,67 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "re.fullname" . }}
+  labels:
+    app: {{ template "re.name" . }}
+    chart: {{ template "re.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "re.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "re.name" . }}
+        release: {{ .Release.Name }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "eu.gcr.io/xray2poc/re:{{ .Values.image.tag }}"
+          command: ["lein", "with-profile", "deploy", "run"]
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
+          env:
+            - name: CONFIG_PATH
+              value: re/config.edn
+          volumeMounts:
+            - name: config
+              mountPath: /usr/app/resources/re/config.edn
+              subPath: config.edn
+            - name: config
+              mountPath: /usr/app/resources/logback.xml
+              subPath: logback.xml
+            - name: config
+              mountPath: /usr/app/profiles.clj
+              subPath: profiles.clj
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ template "re.fullname" . }}

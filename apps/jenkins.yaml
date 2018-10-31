@@ -1,0 +1,18 @@
+Master:
+  ServiceType: NodePort
+  UseSecurity: false
+  ImageTag: 2.126
+  InstallPlugins:
+    - kubernetes:1.7.0
+    - workflow-aggregator:2.5
+    - workflow-job:2.21
+    - credentials-binding:1.16
+    - git:3.9.0
+    - github-branch-source:2.3.4
+  ServicePort: 80
+  NodeSelector:
+    dedicated: infra
+  JavaOpts: "-Dhudson.model.DirectoryBrowserSupport.CSP="
+
+rbac:
+  install: true

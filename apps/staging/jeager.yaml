@@ -1,0 +1,22 @@
+agent:
+  enabled: false
+
+collector:
+  nodeSelector:
+    dedicated: dev
+
+cassandra:
+  selector:
+    nodeSelector:
+      dedicated: dev
+  resources:
+    requests:
+      memory: 3Gi
+      cpu: 1
+    limits:
+      memory: 3Gi
+      cpu: 1
+
+query:
+  nodeSelector:
+    dedicated: dev

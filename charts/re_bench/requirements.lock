@@ -1,0 +1,12 @@
+dependencies:
+- name: re
+  repository: file://../re
+  version: 0.1.0
+- name: kafka
+  repository: https://kubernetes-charts-incubator.storage.googleapis.com/
+  version: 0.7.2
+- name: scylla
+  repository: file://../scylla
+  version: 0.1.0
+digest: sha256:623ba5a0cede50aaf77c8dcb9b3ef93f3494a049d5d83248c9720e3ea1ba50a3
+generated: 2018-09-04T17:06:22.443619309+02:00

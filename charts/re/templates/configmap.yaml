@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "re.fullname" . }}
+data:
+  config.edn: {{ include "re.config" . | quote }}
+  profiles.clj: {{ include "re.profiles" . | quote }}
+  logback.xml: {{ .Files.Get "config/logback.xml" | quote }}

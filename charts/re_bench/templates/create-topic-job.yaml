@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{.Release.Name}}-create-topic"
+  labels:
+    heritage: {{.Release.Service | quote }}
+    release: {{.Release.Name | quote }}
+    chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-delete-policy": "hook-succeeded,hook-failed"
+    "helm.sh/hook-weight": "0"
+spec:
+  template:
+    metadata:
+      name: "{{.Release.Name}}-create-topic"
+      labels:
+        heritage: {{.Release.Service | quote }}
+        release: {{.Release.Name | quote }}
+        chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.kafka_image }}:{{ .Values.kafka_image_tag }}"
+          command:
+            - "/usr/bin/kafka-topics"
+            - "--zookeeper"
+            - "{{ .Release.Name }}-zookeeper:2181"
+            - "--create"
+            - "--topic"
+            - "events"
+            - "--partitions"
+            - "{{ .Values.partitions }}"
+            - "--replication-factor"
+            - "1"
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            

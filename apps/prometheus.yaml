@@ -1,0 +1,55 @@
+# serverFiles:
+#   prometheus.yml:
+#     global:
+#       scrape_interval: 10s
+
+alertmanager:
+  nodeSelector:
+    dedicated: infra
+  resources:
+    limits:
+      cpu: 10m
+      memory: 32Mi
+    requests:
+      cpu: 10m
+      memory: 32Mi
+
+kubeStateMetrics:
+  nodeSelector:
+    dedicated: infra
+  resources:
+    limits:
+      cpu: 100m
+      memory: 32Mi
+    requests:
+      cpu: 100m
+      memory: 32Mi
+
+nodeExporter:
+  nodeSelector:
+    dedicated: infra
+  resources:
+    limits:
+      cpu: 200m
+      memory: 50Mi
+    requests:
+      cpu: 100m
+      memory: 30Mi
+
+server:
+  nodeSelector:
+    dedicated: infra
+  persistentVolume:
+    size: 100Gi
+  resources:
+    limits:
+      cpu: 500m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  global:
+    scrape_interval: 10s
+
+pushgateway:
+  enabled: false

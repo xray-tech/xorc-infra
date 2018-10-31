@@ -1,0 +1,5 @@
+replicaCount: 10
+
+kafka:
+  endpoint: staging-kafka:9092
+  group_prefix: staging

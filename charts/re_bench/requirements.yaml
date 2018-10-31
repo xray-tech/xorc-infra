@@ -1,0 +1,17 @@
+dependencies:
+  - name: re
+    version: 0.1.0
+    repository: file://../re
+    tags:
+      - consumer
+  - name: kafka
+    version: 0.7.2
+    repository:  https://kubernetes-charts-incubator.storage.googleapis.com/
+    # import-values:
+    #   - child: image
+    #     parent: kafka_image
+    #   - child: imageTag
+    #     parent: kafka_image_tag
+  - name: scylla
+    version: 0.1.0
+    repository: file://../scylla

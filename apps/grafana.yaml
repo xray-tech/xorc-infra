@@ -1,0 +1,31 @@
+nodeSelector:
+  dedicated: infra
+
+resources:
+ limits:
+   cpu: 100m
+   memory: 128Mi
+ requests:
+   cpu: 100m
+   memory: 128Mi
+
+datasources:
+  datasources.yaml:
+   apiVersion: 1
+   datasources:
+   - name: Prometheus
+     type: prometheus
+     url: http://prometheus-server
+     access: proxy
+     isDefault: true
+
+grafana.ini:
+  auth:
+    disable_login_form: true
+  auth.anonymous:
+    enabled: true
+    org_role: "Admin"
+
+sidecar:
+  dashboards:
+    enabled: true

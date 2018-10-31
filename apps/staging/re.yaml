@@ -1,0 +1,21 @@
+replicaCount: 1
+crm:
+  workers: 10
+
+rpc:
+  workers: 20
+
+kafka:
+  endpoint: staging-kafka:9092
+
+scylla:
+  endpoint: staging-scylla-scylla
+
+nodeSelector:
+  dedicated: dev
+
+jvmOpts:
+  - "-DJAEGER_SERVICE_NAME=re"
+  - "-DJAEGER_ENDPOINT=http://staging-jaeger-collector.default.svc.cluster.local:14268/api/traces"
+  - "-DJAEGER_SAMPLER_TYPE=ratelimiting"
+  - "-DJAEGER_SAMPLER_PARAM=10"

@@ -1,0 +1,89 @@
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: {{ template "scylla.fullname" . }}
+  labels:
+    app: {{ template "scylla.name" . }}
+spec:
+  serviceName: {{ template "scylla.fullname" . }}
+  replicas: {{ .Values.replicaCount }}
+  podManagementPolicy: OrderedReady
+  selector:
+    matchLabels:
+      app: {{ template "scylla.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "scylla.name" . }}
+        release: {{ .Release.Name }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9180"
+    spec:
+      containers:
+        - name: scylla
+          image: scylladb/scylla:2.0.0
+          imagePullPolicy: IfNotPresent
+          args: ["--seeds", "{{ template "scylla.fullname" . }}-0.{{ template "scylla.fullname" . }}.default.svc.cluster.local"]
+          ports:
+            - containerPort: 7000
+              name: intra-node
+            - containerPort: 7001
+              name: tls-intra-node
+            - containerPort: 7199
+              name: jmx
+            - containerPort: 9042
+              name: cql
+            - containerPort: 9180
+              name: prometheus
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          securityContext:
+            capabilities:
+              add:
+                - IPC_LOCK
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "PID=$(pidof scylla) && kill $PID && while ps -p $PID > /dev/null; do sleep 1; done"]
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - exec
+                - /opt/ready-probe.sh
+            initialDelaySeconds: 15
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: scylla-data
+              mountPath: /var/lib/scylla
+            - name: scylla-ready-probe
+              mountPath: /opt/ready-probe.sh
+              subPath: ready-probe.sh
+      volumes:
+      {{- if not .Values.persistence.enabled }}
+        - name: scylla-data
+          emptyDir: {}
+      {{- end }}
+        - name: scylla-ready-probe
+          configMap:
+            name: {{ template "scylla.fullname" . }}
+{{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: scylla-data
+        annotations:
+          volume.beta.kubernetes.io/storage-class: {{ template "scylla.fullname" . }}-ssd
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+ {{- end }}

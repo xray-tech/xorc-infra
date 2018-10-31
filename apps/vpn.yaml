@@ -1,0 +1,13 @@
+openvpn:
+  redirectGateway: false
+
+resources:
+  limits:
+    cpu: 300m
+    memory: 128Mi
+  requests:
+    cpu: 300m
+    memory: 128Mi
+
+nodeSelector:
+  dedicated: infra

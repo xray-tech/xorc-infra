@@ -1,0 +1,4 @@
+controller:
+  service:
+    externalTrafficPolicy: Local
+    loadBalancerIP: 35.198.187.14
